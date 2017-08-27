@@ -1,0 +1,8 @@
+The problem essentially boils down to this - You have the location of each particle (in map coordinates) and observations (in car coordinates). You transform these observations to map coordinates and then try to associate the observations with the landmarks around the particle (or car, since the particle itself is the car). Then after doing the association you compute the likelihood of the association being correct. The closer the observation is to the associated landmark, the higher is its weight component.
+
+1. There is a car in some location - we don’t know it and would like to find
+2. What’s given to us:
+	a map with the list of landmarks in map coordinates,
+	list of landmarks’ observations from car’s perception subsystem
+	inaccurate car’s position from GPS
+3. We generate n particles with the location, distributed around GPS position with GPS noise as a sigma - so we also have a list of particles location in map coordinate
