@@ -111,8 +111,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   https://www.willamette.edu/~gorr/classes/GeneralGraphics/Transforms/transforms2d.htm
 	//   and the following is a good resource for the actual equation to implement (look at equation 
 	//   3.33
-	//   http://planning.cs.uiuc.edu/node99.html
-	
+	//   http://planning.cs.uiuc.edu/node99.html	
 
 	double obs_x, obs_y;
 
@@ -121,15 +120,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		cout << "" << endl;
 		cout << "NEW PARTICLE" << endl;
 		cout << "i = " << i << endl;
-		cout << "particles[i].x " << particles[i].x << endl;
-		cout << "particles[i].y " << particles[i].y << endl;
 		
 		particles[i].weight = 1.0;
 
 		for(int j = 0; j < observations.size(); j++){
-
-			//cout << "" << endl;
-			//cout << "NEW OBSERVATION" << endl;			
+			
 			//cout << "j = " << j << endl;
 
 			// Transforming observations from VEHICLE cordinates to MAP cordinates
@@ -162,19 +157,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				
 				double landmk_x = map_landmarks.landmark_list[k].x_f;
 				double landmk_y = map_landmarks.landmark_list[k].y_f;
-
-				//cout << " landmk_x " << landmk_x << endl;
-				//cout << " landmk_y " << landmk_y << endl;
 						
 				if(fabs(landmk_x - particles[i].x) <= sensor_range){
 
 					if(fabs(landmk_y - particles[i].y) <= sensor_range){
-
-						//cout << "<=sensor_range" << endl;
 			
-						new_dist = dist(obs_x, obs_y, landmk_x, landmk_y);
-
-						//cout << "new dist = " << new_dist << endl;
+						new_dist = dist(obs_x, obs_y, landmk_x, landmk_y);						
 						
 						if(flag == 1){
 						//	cout << "min set" << endl;
@@ -188,13 +176,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 							min_dist = new_dist;							
 							mu_x = landmk_x;
 							mu_y = landmk_y;
-							//cout << "updated min = " << min_dist << endl;
-							
+							//cout << "updated min = " << min_dist << endl;							
 						}
-					}
-					
+					}					
 				}
-
 			}
 			// Particle weight calc.
 			// The weight of the particle is calculated as the product of each measurement's Multi-variate Gaussian  probability. 
@@ -212,9 +197,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			//					((y_obs - mu_y)**2)/(2 * sig_y**2)
 			//
 			// # calculate weight using normalization terms and exponent
-			// weight= gauss_norm * exp(-exponent)
-			
-			//cout << "particle weight beginning " << particles[i].weight << endl;
+			// weight= gauss_norm * exp(-exponent)			
 
 			double gauss_norm = (1/(2 * M_PI * std_landmark[0] * std_landmark[1]));
 			double x_exponent = (pow((obs_x - mu_x),2)) / (2*pow(std_landmark[0],2)); 
@@ -228,11 +211,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			cout << "weight" << gauss_norm * exp(-exponent) << endl;
 			cout << "" << endl;
 		}		
-
-	}
-	cout << "DONE" << endl;	
+	}	
 }
-/*
+
 void ParticleFilter::resample() {
 	// TODO: Resample particles with replacement with probability proportional to their weight. 
 	// NOTE: You may find std::discrete_distribution helpful here.
@@ -248,49 +229,6 @@ void ParticleFilter::resample() {
 	}
 
 	particles = resample_particles;
-
-}
-*/
-
-void ParticleFilter::resample() 
-{
-	
-	//std::cout << "In resample \n";
-	
-	double beta = 0.0;
-	vector <double> weights;
-	
-	// determine max weight
-	for (int i=0; i < num_particles; i++)
-	{
-		weights.push_back(particles[i].weight);
-	}
-	double max_w = *max_element(weights.begin(), weights.end()); 
-	//cout << "Max weight: "<<max_w << endl;
-
-	//--------------------------
-	// Implement the wheel algo
-	//--------------------------
-	std::default_random_engine eng;
-	std::uniform_int_distribution<int> dist{0, num_particles-1};
-    unsigned int index = dist(eng);
-	vector<Particle> resampled_particles;	
-
-	for (int i=0; i < num_particles; i++)
-	{
-		beta = beta + 2 * max_w;
-		while (weights[index] < beta) 
-		{
-			beta = beta - weights[index];
-			index = ( index + 1 ) % num_particles;
-		}
-		
-		// take the particle into new set 
-		resampled_particles.push_back(particles[index]);
-	} 
-	
-	// Replace old set of particles with the new set 
-	particles = resampled_particles;
 }
 
 Particle ParticleFilter::SetAssociations(Particle particle, std::vector<int> associations, std::vector<double> sense_x, std::vector<double> sense_y)
