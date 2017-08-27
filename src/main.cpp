@@ -73,10 +73,20 @@ int main()
 			double sense_theta = std::stod(j[1]["sense_theta"].get<std::string>());
 
 			pf.init(sense_x, sense_y, sense_theta, sigma_pos);
+      /*
+      cout << "sense_x " << sense_x << endl;
+      cout << "sense_y " << sense_y << endl;
+
+      for(int i=0; i < 5; i++){
+        cout << "particle " << pf.particles[i].x << endl;
+        cout << "particle " << pf.particles[i].y << endl;
+        cout << "particle " << pf.particles[i].theta << endl;
+        cout << "particle " << pf.particles[i].weight << endl;
+        } */
 		  }
 		  else {
 			// Predict the vehicle's next state from previous (noiseless control) data.
-		  	double previous_velocity = std::stod(j[1]["previous_velocity"].get<std::string>());
+		  double previous_velocity = std::stod(j[1]["previous_velocity"].get<std::string>());
 			double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<std::string>());
 
 			pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
@@ -106,8 +116,8 @@ int main()
         	{
         		LandmarkObs obs;
         		obs.x = x_sense[i];
-				obs.y = y_sense[i];
-				noisy_observations.push_back(obs);
+			     	obs.y = y_sense[i];
+				    noisy_observations.push_back(obs);
         	}
 
 		  // Update the weights and resample
@@ -189,90 +199,5 @@ int main()
   }
   h.run();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
