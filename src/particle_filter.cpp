@@ -19,6 +19,7 @@
 
 using namespace std;
 
+/*
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of 
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
@@ -50,7 +51,84 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	}
 
 	is_initialized = 1;
+}
+*/
 
+void ParticleFilter::init(double x, double y, double theta, double std[]) {
+	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of 
+	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
+	// Add random Gaussian noise to each particle.
+	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
+	
+	debug_mode = 0;
+
+	/*
+	The idea is to try out the code without taking the observations into account, to run it in "open loop" mode. 
+	The car should track the simulator path at a course level, easy to see by looking at the simulator, but of course 
+	not to the accuracy the completed project will require.
+	I made myself a debug flag and changed the code to take a little different action if it is set to true. 
+	In debug mode: init() function just sets all particle positions to the GPS information (x, y, theta) exactly with no noise added 
+	and sets the first weight to 1 and the rest to 0; 
+	predict() function in this mode does not add any noise but performs the motion update; 
+	updateWeights and resample return immediately. 
+	When running in debug mode the blue circle should roughly follow the trajectory of the car.
+	*/
+
+	if(debug_mode == 1){
+		num_particles = 1; // No. of particles = 1 for debug mode.
+	}else{
+		num_particles = 10; // No. of particles. Keep size such that the filter deos not become slow nor less accurate
+	}
+	
+	default_random_engine gen;
+	
+	// This line creates a normal (Gaussian) distribution for x.
+	normal_distribution<double> dist_x(x, std[0]);	
+	// This line creates a normal (Gaussian) distribution for y.
+	normal_distribution<double> dist_y(y, std[1]);
+	// This line creates a normal (Gaussian) distribution for theta.
+	normal_distribution<double> dist_theta(theta, std[2]);
+
+	if(debug_mode == 0){
+
+		for(int i=0; i < num_particles; i++){
+			
+			Particle particle;
+			particle.id = i;
+			particle.x = dist_x(gen);
+			particle.y = dist_y(gen);
+			particle.theta = dist_theta(gen);
+			particle.weight = 1.0;
+
+			particles.push_back(particle);
+			weights.push_back(1);
+		}
+	}
+	else{ // DEBUG MODE
+
+		for(int i=0; i < num_particles; i++){			
+			//cout << "i= " << i << endl;
+			
+			Particle particle;
+			particle.id = i;
+			particle.x = x;
+			particle.y = y;
+			particle.theta = theta;
+			
+			if(i==0){
+				particle.weight = 1.0;
+				weights.push_back(1);
+			
+			}else{
+				weights[i] = 0;
+				particle.weight = 0.0;
+			}
+			particles.push_back(particle);		
+			//cout << "weights init " << weights[i] << endl;			
+		}
+	}	
+	
+	is_initialized = 1;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -85,12 +163,19 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 		// This line creates a normal (Gaussian) distribution for theta.
 		normal_distribution<double> dist_theta(new_theta, std_pos[2]);
 
-		particles[i].x = dist_x(gen);
-		particles[i].y = dist_y(gen);
-		particles[i].theta = dist_theta(gen);
-
+		if(debug_mode == 1){ // DEBUG MODE
+			particles[i].x = new_x;
+			particles[i].y = new_y;
+			particles[i].theta = new_theta;
+		}
+		else{
+			particles[i].x = dist_x(gen);
+			particles[i].y = dist_y(gen);
+			particles[i].theta = dist_theta(gen);			
+		}
 	}
 }
+
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
 	// TODO: Find the predicted measurement that is closest to each observed measurement and assign the 
@@ -112,14 +197,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   and the following is a good resource for the actual equation to implement (look at equation 
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html	
-
+	cout << endl;
+	cout << "in updateWeights" << endl;
 	double obs_x, obs_y;
 
 	for(int i=0; i < num_particles; i++){
 		
-		cout << "" << endl;
-		cout << "NEW PARTICLE" << endl;
-		cout << "i = " << i << endl;
+		//cout << "" << endl;		
+		//cout << "i = " << i << endl;
 		
 		particles[i].weight = 1.0;
 
@@ -127,8 +212,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			
 			//cout << "j = " << j << endl;
 
-			// Transforming observations from VEHICLE cordinates to MAP cordinates
-			if(particles[i].theta > 0){ //Counterclockwise
+			// Transforming observations from VEHICLE cordinates to MAP cordinates: Rotation and translation
+			/*if(particles[i].theta > 0){ //Counterclockwise
 				
 				observations[j].x = particles[i].x + cos(particles[i].theta)*observations[j].x - sin(particles[i].theta)*observations[j].y;
 				observations[j].y = particles[i].y + sin(particles[i].theta)*observations[j].x + cos(particles[i].theta)*observations[j].y;
@@ -138,6 +223,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 				observations[j].x = particles[i].x + cos(particles[i].theta)*observations[j].x + sin(particles[i].theta)*observations[j].y;
 				observations[j].y = particles[i].y - sin(particles[i].theta)*observations[j].x + cos(particles[i].theta)*observations[j].y;	
 			}
+			*/
+
+			observations[j].x = particles[i].x + cos(particles[i].theta)*observations[j].x - sin(particles[i].theta)*observations[j].y;
+			observations[j].y = particles[i].y + sin(particles[i].theta)*observations[j].x + cos(particles[i].theta)*observations[j].y;
 
 			obs_x = observations[j].x;
 			obs_y = observations[j].y;
@@ -205,21 +294,31 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			double exponent = x_exponent + y_exponent;
 			particles[i].weight = particles[i].weight * gauss_norm * exp(-exponent);
 			
-			cout << " obs x, obs_y " << obs_x << "," << obs_y << endl;
-			cout << " mu x, mu_y " << mu_x << "," << mu_y << endl;
-			cout << "x_exponent, y_exponent " << x_exponent << "," << y_exponent << endl;	
-			cout << "weight" << gauss_norm * exp(-exponent) << endl;
-			cout << "" << endl;
-		}		
-	}	
+			//cout << " trans_obs x, trans_obs_y: " << obs_x << "," << obs_y << endl;
+			//cout << " associated landmark : mu_x, mu_y " << mu_x << "," << mu_y << endl;
+			//cout << "x_exponent, y_exponent : " << x_exponent << "," << y_exponent << endl;	
+			//cout << "weight : " << gauss_norm * exp(-exponent) << endl;
+			//cout << "" << endl;			
+			
+		}	
+		weights[i] = particles[i].weight;
+	}			
 }
 
 void ParticleFilter::resample() {
 	// TODO: Resample particles with replacement with probability proportional to their weight. 
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+	cout << endl;
+	cout << "in resample" << endl;
 
 	default_random_engine gen;
+
+	for (int i = 0; i < weights.size(); i++)
+	{
+		//cout << "weight " << i << "=" << weights[i] << endl;
+	}
+		
 	discrete_distribution<int> distribution(weights.begin(), weights.end());
 
 	vector<Particle> resample_particles;
@@ -227,7 +326,13 @@ void ParticleFilter::resample() {
 	for(int i=0; i < num_particles; i++){
 		resample_particles.push_back(particles[distribution(gen)]);
 	}
-
+	
+	for (int i = 0; i < 9; i++)
+      {      	
+        cout << "x=" << particles[i].x << endl;
+        cout << "y=" << particles[i].y << endl;
+        cout << "weight=" << particles[i].weight << endl;
+      }
 	particles = resample_particles;
 }
 
