@@ -73,25 +73,46 @@ int main()
 			double sense_theta = std::stod(j[1]["sense_theta"].get<std::string>());
 
 			pf.init(sense_x, sense_y, sense_theta, sigma_pos);
-      /*
+      cout << endl;
+      cout << "after init" << endl;
       cout << "sense_x " << sense_x << endl;
       cout << "sense_y " << sense_y << endl;
+      cout << "" << endl;      
 
       for(int i=0; i < 5; i++){
-        cout << "particle " << pf.particles[i].x << endl;
-        cout << "particle " << pf.particles[i].y << endl;
-        cout << "particle " << pf.particles[i].theta << endl;
-        cout << "particle " << pf.particles[i].weight << endl;
-        } */
+        cout << "x=" << pf.particles[i].x << endl;
+        cout << "y=" << pf.particles[i].y << endl;                
+        cout << "weight=" << pf.particles[i].weight << endl;
+        }
+      
 		  }
 		  else {
 			// Predict the vehicle's next state from previous (noiseless control) data.
 		  double previous_velocity = std::stod(j[1]["previous_velocity"].get<std::string>());
 			double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<std::string>());
 
-			pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
-		  }
+      cout << "" << endl;
+      cout << "before prediction" << endl;
+      for (int i = 0; i < 9; i++)
+      {
+        cout << "x=" << pf.particles[i].x << endl;
+        cout << "y=" << pf.particles[i].y << endl;
+        cout << "weight=" << pf.particles[i].weight << endl;
+      }
 
+			pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
+
+      cout << "" << endl;
+      cout << "after prediction" << endl;
+      for (int i = 0; i < 9; i++)
+      {
+        cout << "x=" << pf.particles[i].x << endl;
+        cout << "y=" << pf.particles[i].y << endl;
+        cout << "weight=" << pf.particles[i].weight << endl;
+      }
+
+		  // #### from here to (A)
+    }
 		  // receive noisy observation data from the simulator
 		  // sense_observations in JSON format [{obs_x,obs_y},{obs_x,obs_y},...{obs_x,obs_y}]
 		  	vector<LandmarkObs> noisy_observations;
@@ -124,6 +145,8 @@ int main()
 		  pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
 		  pf.resample();
 
+       // (A)
+
 		  // Calculate and output the average weighted error of the particle filter over all time steps so far.
 		  vector<Particle> particles = pf.particles;
 		  int num_particles = particles.size();
@@ -151,7 +174,7 @@ int main()
           msgJson["best_particle_sense_y"] = pf.getSenseY(best_particle);
 
           auto msg = "42[\"best_particle\"," + msgJson.dump() + "]";
-          // std::cout << msg << std::endl;
+          //std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 	  
         }
