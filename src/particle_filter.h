@@ -35,6 +35,8 @@ class ParticleFilter {
 	
 	// Vector of weights of all particles
 	std::vector<double> weights;
+
+	int debug_mode;
 	
 public:
 	
