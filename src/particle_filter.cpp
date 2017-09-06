@@ -28,6 +28,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	debug_mode = 0;
 
 	/*
+	Debug mode:
 	The idea is to try out the code without taking the observations into account, to run it in "open loop" mode. 
 	The car should track the simulator path at a course level, easy to see by looking at the simulator, but of course 
 	not to the accuracy the completed project will require.
@@ -167,27 +168,17 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 	for(int i=0; i < num_particles; i++){
 		
-		//cout << "" << endl;		
-		//cout << "i = " << i << endl;
 		Particle p = particles[i];
 		
 		p.weight = 1.0;
 
 		for(int j = 0; j < observations.size(); j++){
-			
-			//cout << "j = " << j << endl;
-
+		
 			// Transforming observations from VEHICLE cordinates to MAP cordinates: Rotation and translation
-			//cout << "------------------- Obs transformation -----------------" << endl;
-
+		
 			obs_x = p.x + cos(p.theta)*observations[j].x - sin(p.theta)*observations[j].y;
 			obs_y = p.y + sin(p.theta)*observations[j].x + cos(p.theta)*observations[j].y;
-
-			//obs_x = observations[j].x;
-			//obs_y = observations[j].y;
-
-			//cout << " Obs(x,y) " << observations[j].x << "," << observations[j].y << "-->" << "TObs(x,y) " << obs_x << "," << obs_y << endl;
-			
+	
 			// Association of an observation with its landmark
 			double new_dist = 0.0;			
 			double min_dist = 0.0;
@@ -198,11 +189,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 			int flag = 1;
 
-			//cout << "------------------- Association ----------------------" << endl;
-
 			for(int k=0; k < map_landmarks.landmark_list.size(); k++){	
-
-				//cout << "k = " << k << endl;
 				
 				double landmk_x = map_landmarks.landmark_list[k].x_f;
 				double landmk_y = map_landmarks.landmark_list[k].y_f;
@@ -214,7 +201,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 						new_dist = dist(obs_x, obs_y, landmk_x, landmk_y);						
 						
 						if(flag == 1){
-						//	cout << "min set" << endl;
+
 							min_dist = new_dist;
 							mu_x = landmk_x;
 							mu_y = landmk_y;
@@ -254,9 +241,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 			double exponent = x_exponent + y_exponent;
 			p.weight = p.weight * gauss_norm * exp(-exponent);
 			
-			//cout << " Tobs(x,y) : " << obs_x << "," << obs_y << " assoc. lm(mu_x, mu_y): " << mu_x << "," << mu_y << " assoc. lm_id = " << landmark_id << endl;
-			//cout << "x_exponent, y_exponent : " << x_exponent << "," << y_exponent << endl;	
-			//cout << "weight : " << gauss_norm * exp(-exponent) << endl;			
 		}
 		weights[i] = p.weight;
 	}			
@@ -276,22 +260,7 @@ void ParticleFilter::resample() {
 	for(int i=0; i < num_particles; i++){
 		resample_particles.push_back(particles[distribution(gen)]);
 	}
-	/*
-	cout << "particles weight" << endl;	
-	for (int i = 0; i < 9; i++)
-      {      	
-      	cout << "(x,y) = " << particles[i].x << ","<< particles[i].y << endl;      
-        cout << "weight = " << particles[i].weight << endl;
-      }
-
-    cout << endl;
-    cout << "resample_particles weights" << endl;
-	for (int i = 0; i < 9; i++)
-      {      	
-      	cout << "(x,y) = " << resample_particles[i].x << ","<< resample_particles[i].y << endl;      
-        cout << "weight = " << resample_particles[i].weight << endl;
-      }
-	*/
+	
 	particles = resample_particles;
 }
 
