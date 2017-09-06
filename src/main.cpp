@@ -73,45 +73,15 @@ int main()
 			double sense_theta = std::stod(j[1]["sense_theta"].get<std::string>());
 
 			pf.init(sense_x, sense_y, sense_theta, sigma_pos);
-      cout << endl;
-      cout << "after init" << endl;
-      cout << "sense_x " << sense_x << endl;
-      cout << "sense_y " << sense_y << endl;
-      cout << "" << endl;      
-
-      for(int i=0; i < 5; i++){
-        cout << "x=" << pf.particles[i].x << endl;
-        cout << "y=" << pf.particles[i].y << endl;                
-        cout << "weight=" << pf.particles[i].weight << endl;
-        }
-      
+            
 		  }
 		  else {
 			// Predict the vehicle's next state from previous (noiseless control) data.
 		  double previous_velocity = std::stod(j[1]["previous_velocity"].get<std::string>());
 			double previous_yawrate = std::stod(j[1]["previous_yawrate"].get<std::string>());
-
-      cout << "" << endl;
-      cout << "before prediction" << endl;
-      for (int i = 0; i < 9; i++)
-      {
-        cout << "x=" << pf.particles[i].x << endl;
-        cout << "y=" << pf.particles[i].y << endl;
-        cout << "weight=" << pf.particles[i].weight << endl;
-      }
-
+      
 			pf.prediction(delta_t, sigma_pos, previous_velocity, previous_yawrate);
-
-      cout << "" << endl;
-      cout << "after prediction" << endl;
-      for (int i = 0; i < 9; i++)
-      {
-        cout << "x=" << pf.particles[i].x << endl;
-        cout << "y=" << pf.particles[i].y << endl;
-        cout << "weight=" << pf.particles[i].weight << endl;
-      }
-
-		  // #### from here to (A)
+      
     }
 		  // receive noisy observation data from the simulator
 		  // sense_observations in JSON format [{obs_x,obs_y},{obs_x,obs_y},...{obs_x,obs_y}]
@@ -144,8 +114,6 @@ int main()
 		  // Update the weights and resample
 		  pf.updateWeights(sensor_range, sigma_landmark, noisy_observations, map);
 		  pf.resample();
-
-       // (A)
 
 		  // Calculate and output the average weighted error of the particle filter over all time steps so far.
 		  vector<Particle> particles = pf.particles;
